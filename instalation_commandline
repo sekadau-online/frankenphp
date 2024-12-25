@@ -1,0 +1,37 @@
+
+apt update
+apt upgrade -y
+apt install zip -y
+  #php8.4 instalation
+apt-get -y install lsb-release ca-certificates curl apt-transport-https
+curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://packages.sury.org/debsuryorg-archive-keyring.deb
+dpkg -i /tmp/debsuryorg-archive-keyring.deb
+sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+apt-get update
+apt-get install php8.4 php8.4-mbstring php8.4-dom php8.4-tokenizer php8.4-readline php8.4-sqlite3 php8.4-curl -y
+
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+  #verif only needed
+php -r "if (hash_file('sha384', 'composer-setup.php') === 'dac665fdc30fdd8ec78b38b9800061b4150413ff2e3b6f88543c636f7cd84f6db9189d43a81e5503cda447da73c7e5b6') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+php composer-setup.php
+php -r "unlink('composer-setup.php');"
+mv composer.phar /usr/local/bin/composer
+  #composer global require laravel/installer
+echo 'export PATH="$PATH:$HOME/.config/composer/vendor/bin"' >> ~/.bashrc
+  #Install frankenphp
+curl https://frankenphp.dev/install.sh | sh
+mv frankenphp /usr/local/bin/
+  #run frankenphp
+frankenphp php-server -r server/
+  #laravelwith octane
+laravel new worker
+cd worker
+composer require laravel/octane
+php artisan octane:install --server=frankenphp
+  #running laravel octane:frankenphp
+php artisan octane:frankenphp
+php artisan octane:frankenphp --workers 20 --port 80
+php artisan octane:frankenphp --admin-port 2020 --port 8001
+
+#multiphp switch
+update-alternatives --config php
